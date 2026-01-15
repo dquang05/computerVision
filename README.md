@@ -10,12 +10,12 @@
 ## 1) Clone / tải project về
 Mở CMD và vào thư mục muốn đặt project, ví dụ:
 ```bat
-cd /d C:\dev
+cd C:\dev\Thigiamaytinh
 git clone https://github.com/yourusername/computerVision.git
-cd cv_project
+cd computerVision
 ```
 ## 2) Tạo & kích hoạt môi trường ảo (venv)
-Trong thư mục project (`cv_project`):
+Trong thư mục project (`computerVision`), chạy:
 
 ```bat
 Kiểm tra version: python --version
