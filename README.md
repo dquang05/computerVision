@@ -11,7 +11,7 @@
 Mở CMD và vào thư mục muốn đặt project, ví dụ:
 ```bat
 cd /d C:\dev
-git clone https://github.com/yourusername/cv_project.git
+git clone https://github.com/yourusername/computerVision.git
 cd cv_project
 ```
 ## 2) Tạo & kích hoạt môi trường ảo (venv)
