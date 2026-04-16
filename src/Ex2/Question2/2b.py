@@ -40,19 +40,19 @@ def non_max_suppression(boxes, overlap_thresh=0.3):
     return boxes[pick]
 
 
-# Lấy đường dẫn ảnh
+# Get image path
 base_dir = os.path.dirname(os.path.abspath(__file__))
 
-# Ghép đường dẫn đầy đủ tới các file ảnh
+# Concatenate full paths to image files
 source_path = os.path.join(base_dir, "source_pcb.png")
 template1_path = os.path.join(base_dir, "capacitor.png")
 template2_path = os.path.join(base_dir, "res1.png")
 template3_path = os.path.join(base_dir, "res2.png")
 
-# Đọc ảnh nguồn
+# Read source image
 img_color = cv2.imread(source_path)
 if img_color is None:
-    raise FileNotFoundError(f"Không đọc được ảnh nguồn: {source_path}")
+    raise FileNotFoundError(f"Cannot read source image: {source_path}")
 
 img_gray = cv2.cvtColor(img_color, cv2.COLOR_BGR2GRAY)
 
@@ -71,13 +71,13 @@ for t in templates:
 
     h, w = template.shape
 
-    # Dùng NCC TM_CCOEFF_NORMED để tìm kiếm template (nó hơi khác với 2a, nếu dùng cái 2a thì nó sẽ rất khó để tìm được template)
+    # Use NCC TM_CCOEFF_NORMED to search for template (slightly different from 2a, using 2a would be very difficult)
     result = cv2.matchTemplate(img_gray, template, cv2.TM_CCOEFF_NORMED)
 
     locations = np.where(result >= t["threshold"])
 
     if locations[0].size == 0:
-        print(f"Không tìm thấy mẫu {t['path']} với threshold = {t['threshold']}")
+        print(f"Template {t['path']} not found with threshold = {t['threshold']}")
         continue
 
     boxes = []
@@ -85,7 +85,7 @@ for t in templates:
         score = result[pt[1], pt[0]]
         boxes.append([pt[0], pt[1], w, h, score])
 
-    print(f"Tìm thấy {len(boxes)} vị trí thô cho mẫu {os.path.basename(t['path'])}")
+    print(f"Found {len(boxes)} rough positions for template {os.path.basename(t['path'])}")
 
     boxes_nms = non_max_suppression(boxes, overlap_thresh=0.3)
 
@@ -93,10 +93,10 @@ for t in templates:
         x, y, w_box, h_box = int(box[0]), int(box[1]), int(box[2]), int(box[3])
         cv2.rectangle(img_color, (x, y), (x + w_box, y + h_box), t["color"], 2)
 
-    print(f"Giữ lại {len(boxes_nms)} vị trí cho mẫu {os.path.basename(t['path'])}")
+    print(f"Kept {len(boxes_nms)} positions for template {os.path.basename(t['path'])}")
 
 plt.figure(figsize=(10, 5))
 plt.imshow(cv2.cvtColor(img_color, cv2.COLOR_BGR2RGB))
-plt.title("Kết quả nhận diện Template Matching")
+plt.title("Template Matching Recognition Result")
 plt.axis("off")
 plt.show()

@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 import matplotlib.pyplot as plt
 
-# Nhập ma trận
+# Input matrix
 img = np.array([
     [20, 22, 22, 35, 39, 126],
     [198, 20, 98, 20, 56, 97],

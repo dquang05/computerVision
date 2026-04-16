@@ -2,35 +2,35 @@ import cv2 as cv
 import numpy as np
 import matplotlib.pyplot as plt
 
-# Đọc ảnh
+# Read image
 img = cv.imread('Xanh.jpg', cv.IMREAD_COLOR)
 
-# Resize nếu cần (lưu ý: code gốc của bạn khai báo resized nhưng tính hist trên img gốc)
-# Nếu muốn tính trên ảnh nhỏ cho nhanh thì đổi biến img bên dưới thành resized
+# Resize if needed (note: your original code declares resized but calculates hist on original img)
+# If you want to calculate on small image for speed, change img variable below to resized
 img = cv.resize(img, (250, 250))
 
 color = ('b', 'g', 'r')
-channel_names = ('Blue (Xanh dương)', 'Green (Xanh lá)', 'Red (Đỏ)')
+channel_names = ('Blue', 'Green', 'Red')
 
-# Tạo một khung hình rộng để chứa 3 biểu đồ
+# Create a wide frame to contain 3 charts
 plt.figure(figsize=(15, 5))
 
 for i, col in enumerate(color):
-    # Tính histogram cho kênh màu thứ i
+    # Calculate histogram for channel i
     histr = cv.calcHist([img], [i], None, [256], [0, 256])
 
-    # Tạo ô biểu đồ con: 1 hàng, 3 cột, vị trí thứ i+1
+    # Create subplot: 1 row, 3 columns, position i+1
     plt.subplot(1, 3, i + 1)
 
-    # Vẽ biểu đồ
+    # Draw chart
     plt.plot(histr, color=col)
     plt.xlim([0, 256])
 
-    # Thêm tiêu đề và lưới cho dễ nhìn
+    # Add title and grid for easy viewing
     plt.title(channel_names[i])
     plt.grid(True, alpha=0.3)
-    plt.xlabel('Giá trị Pixel')
-    plt.ylabel('Số lượng')
+    plt.xlabel('Pixel Value')
+    plt.ylabel('Quantity')
 
-plt.tight_layout() # Tự động căn chỉnh khoảng cách
+plt.tight_layout() # Auto adjust spacing
 plt.show()

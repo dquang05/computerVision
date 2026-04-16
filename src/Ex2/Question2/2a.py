@@ -16,15 +16,15 @@ templ = np.array([
 
 result = cv2.matchTemplate(img, templ, cv2.TM_CCORR_NORMED)
 
-print("Ma trận kết quả NCC:")
+print("NCC result matrix:")
 print(result)
 
 min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(result)
 
-print("\nGiá trị NCC lớn nhất:", max_val)
+print("\nLargest NCC value:", max_val)
 
-# Quy đổi sang tọa độ G(row, col) với row và col bắt đầu từ 1
+# Convert to G(row, col) coordinates with row and col starting from 1
 row = max_loc[1] + 1
 col = max_loc[0] + 1
 
-print(f"Vị trí khớp tốt nhất là: G({row},{col})")
+print(f"Best matching position is: G({row},{col})")

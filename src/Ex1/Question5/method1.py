@@ -11,35 +11,35 @@ def phan_loai_xoai(h_value):
     else:
         return "SONG (Unripe)"
 
-def lay_mau_va_tinh_hue(img, mask, num_points=3):
-    # Tìm tất cả điểm thuộc vùng xoài
+def sample_color_and_calculate_hue(img, mask, num_points=3):
+    # Find all points in mango region
     points_mango = cv.findNonZero(mask)
 
-    # Kiểm tra xem có đủ điểm để random không
+    # Check if there are enough points for random sampling
     if points_mango is None or len(points_mango) < num_points:
-        print("Lỗi: Không tìm thấy vùng xoài hoặc vùng quá nhỏ!")
+        print("Error: Mango region not found or too small!")
         return None, None
 
-    # Chọn ngẫu nhiên các điểm
+    # Randomly select points
     random_indices = random.sample(range(len(points_mango)), num_points)
     
     display_img = img.copy()
     total_hue = 0 
     
-    print(f"{'Điểm':<5} | {'R,G,B':<15} | {'Hue (Standard)':<15}")
+    print(f"{'Point':<5} | {'R,G,B':<15} | {'Hue (Standard)':<15}")
     print("-" * 40)
 
     for i, idx in enumerate(random_indices):
         x, y = points_mango[idx][0]
         
-        # 1. Lấy màu BGR từ ảnh gốc
+        # 1. Get BGR color from original image
         b, g, r = img[y, x]
         
-        # 2. Tính Hue từ RGB
+        # 2. Calculate Hue from RGB
         pixel_bgr = np.uint8([[[b, g, r]]]) 
         pixel_hsv = cv.cvtColor(pixel_bgr, cv.COLOR_BGR2HSV)
         
-        # --- SỬA Ở ĐÂY: Nhân 2 để ra hệ màu 360 độ ---
+        # --- MODIFIED HERE: Multiply 2 to get 360-degree color space ---
         h_val = pixel_hsv[0][0][0] * 2  
         
         total_hue += h_val 
@@ -52,10 +52,10 @@ def lay_mau_va_tinh_hue(img, mask, num_points=3):
         cv.putText(display_img, f"{r},{g},{b}", (x+10, y), 
                 cv.FONT_HERSHEY_SIMPLEX, 0.4, (255, 255, 255), 1)
 
-    # Tính trung bình
+    # Calculate mean
     avg_hue = total_hue / num_points
     return avg_hue, display_img
-    # 1. Đọc ảnh
+    # 1. Read images
 img_original1 = cv.imread('Chin.jpg', cv.IMREAD_COLOR) 
 img_original2 = cv.imread('Medium.jpg', cv.IMREAD_COLOR) 
 img_original3 = cv.imread('Xanh.jpg', cv.IMREAD_COLOR) 
@@ -64,22 +64,22 @@ img2 = cv.resize(img_original2, (500, 500))
 img3 = cv.resize(img_original3, (500, 500))
 
 
-    # --- BƯỚC 1: TÁCH NỀN ---
+    # --- STEP 1: BACKGROUND SEPARATION ---
 hsv_img1 = cv.cvtColor(img1, cv.COLOR_BGR2HSV)
 hsv_img2 = cv.cvtColor(img2, cv.COLOR_BGR2HSV)
 hsv_img3 = cv.cvtColor(img3, cv.COLOR_BGR2HSV)
 
-    # Mask nền xanh dương
+    # Mask for blue background
 lower_blue = np.array([90, 50, 50])
 upper_blue = np.array([140, 255, 255])
 mask_background1 = cv.inRange(hsv_img1, lower_blue, upper_blue)
 mask_background2 = cv.inRange(hsv_img2, lower_blue, upper_blue)
 mask_background3 = cv.inRange(hsv_img3, lower_blue, upper_blue)
 
-    # Đảo ngược mask lấy quả xoài
+    # Invert mask to get mango
 mask_mango1 = cv.bitwise_not(mask_background1)
-mask_mango2= cv.bitwise_not(mask_background2)
-mask_mango3= cv.bitwise_not(mask_background3)
+mask_mango2 = cv.bitwise_not(mask_background2)
+mask_mango3 = cv.bitwise_not(mask_background3)
 kernel = np.ones((5, 5), np.uint8)
 mask_mango1 = cv.morphologyEx(mask_mango1, cv.MORPH_OPEN, kernel)
 mask_mango1 = cv.morphologyEx(mask_mango1, cv.MORPH_CLOSE, kernel)
@@ -88,53 +88,53 @@ mask_mango2 = cv.morphologyEx(mask_mango2, cv.MORPH_CLOSE, kernel)
 mask_mango3 = cv.morphologyEx(mask_mango3, cv.MORPH_OPEN, kernel)
 mask_mango3 = cv.morphologyEx(mask_mango3, cv.MORPH_CLOSE, kernel)
 
-    # --- BƯỚC 2: XỬ LÝ 3 ĐIỂM ---
+    # --- STEP 2: PROCESS 3 POINTS ---
 points_mango1 = cv.findNonZero(mask_mango1)
-points_mango2= cv.findNonZero(mask_mango2)
+points_mango2 = cv.findNonZero(mask_mango2)
 points_mango3 = cv.findNonZero(mask_mango3)
 
 
-    # --- BƯỚC 3: TÍNH TOÁN (Gọi hàm cho từng ảnh) ---
-hue_trung_binh1, anh_ket_qua1 = lay_mau_va_tinh_hue(img1, mask_mango1, num_points=3)
-hue_trung_binh2, anh_ket_qua2 = lay_mau_va_tinh_hue(img2, mask_mango2, num_points=3)
-hue_trung_binh3, anh_ket_qua3 = lay_mau_va_tinh_hue(img3, mask_mango3, num_points=3)
+    # --- STEP 3: CALCULATION (Call function for each image) ---
+hue_avg1, result_img1 = sample_color_and_calculate_hue(img1, mask_mango1, num_points=3)
+hue_avg2, result_img2 = sample_color_and_calculate_hue(img2, mask_mango2, num_points=3)
+hue_avg3, result_img3 = sample_color_and_calculate_hue(img3, mask_mango3, num_points=3)
 
-    # --- BƯỚC 4: HIỂN THỊ KẾT QUẢ ---
+    # --- STEP 4: DISPLAY RESULTS ---
 font = cv.FONT_HERSHEY_SIMPLEX
 
-    # --- Xử lý hiển thị Ảnh 1 ---
-if anh_ket_qua1 is not None:
-        # 1. Phân loại
-    ket_luan1 = phan_loai_xoai(hue_trung_binh1)
+    # --- Processing and displaying Image 1 ---
+if result_img1 is not None:
+        # 1. Classification
+    conclusion1 = classify_mango(hue_avg1)
         
-        # 2. Vẽ lên ảnh kết quả 1 (anh_ket_qua1)
-    cv.rectangle(anh_ket_qua1, (0, 0), (300, 70), (0, 0, 0), -1) 
-    cv.putText(anh_ket_qua1, f"H_avg: {hue_trung_binh1:.1f}", (10, 25), font, 0.7, (0, 255, 255), 2)
-    cv.putText(anh_ket_qua1, ket_luan1, (10, 55), font, 0.7, (0, 255, 0), 2)
+        # 2. Draw on result image 1
+    cv.rectangle(result_img1, (0, 0), (300, 70), (0, 0, 0), -1) 
+    cv.putText(result_img1, f"H_avg: {hue_avg1:.1f}", (10, 25), font, 0.7, (0, 255, 255), 2)
+    cv.putText(result_img1, conclusion1, (10, 55), font, 0.7, (0, 255, 0), 2)
         
-        # 3. Show cửa sổ
-    cv.imshow("Ket qua 1 (Chin)", anh_ket_qua1)
+        # 3. Show window
+    cv.imshow("Result 1 (Ripe)", result_img1)
 
-    # --- Xử lý hiển thị Ảnh 2 ---
-    if anh_ket_qua2 is not None:
-        ket_luan2 = phan_loai_xoai(hue_trung_binh2)
+    # --- Processing and displaying Image 2 ---
+    if result_img2 is not None:
+        conclusion2 = classify_mango(hue_avg2)
         
-        cv.rectangle(anh_ket_qua2, (0, 0), (300, 70), (0, 0, 0), -1) 
-        cv.putText(anh_ket_qua2, f"H_avg: {hue_trung_binh2:.1f}", (10, 25), font, 0.7, (0, 255, 255), 2)
-        cv.putText(anh_ket_qua2, ket_luan2, (10, 55), font, 0.7, (0, 255, 0), 2)
+        cv.rectangle(result_img2, (0, 0), (300, 70), (0, 0, 0), -1) 
+        cv.putText(result_img2, f"H_avg: {hue_avg2:.1f}", (10, 25), font, 0.7, (0, 255, 255), 2)
+        cv.putText(result_img2, conclusion2, (10, 55), font, 0.7, (0, 255, 0), 2)
         
-        cv.imshow("Ket qua 2 (Medium)", anh_ket_qua2)
+        cv.imshow("Result 2 (Medium)", result_img2)
 
-    # --- Xử lý hiển thị Ảnh 3 ---
-    if anh_ket_qua3 is not None:
-        ket_luan3 = phan_loai_xoai(hue_trung_binh3)
+    # --- Processing and displaying Image 3 ---
+    if result_img3 is not None:
+        conclusion3 = classify_mango(hue_avg3)
         
-        cv.rectangle(anh_ket_qua3, (0, 0), (300, 70), (0, 0, 0), -1) 
-        cv.putText(anh_ket_qua3, f"H_avg: {hue_trung_binh3:.1f}", (10, 25), font, 0.7, (0, 255, 255), 2)
-        cv.putText(anh_ket_qua3, ket_luan3, (10, 55), font, 0.7, (0, 255, 0), 2)
+        cv.rectangle(result_img3, (0, 0), (300, 70), (0, 0, 0), -1) 
+        cv.putText(result_img3, f"H_avg: {hue_avg3:.1f}", (10, 25), font, 0.7, (0, 255, 255), 2)
+        cv.putText(result_img3, conclusion3, (10, 55), font, 0.7, (0, 255, 0), 2)
         
-        cv.imshow("Ket qua 3 (Xanh)", anh_ket_qua3)
+        cv.imshow("Result 3 (Unripe)", result_img3)
 
-    # --- BƯỚC 5: ĐỢI VÀ ĐÓNG ---
+    # --- STEP 5: WAIT AND CLOSE ---
     cv.waitKey(0)
     cv.destroyAllWindows()
