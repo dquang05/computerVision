@@ -1,6 +1,6 @@
 # cv_project - Learning OpenCV & Computer Vision
 
-A learning project focused on **Computer Vision with OpenCV**, without model training components.
+A learning project focused on **Computer Vision with OpenCV**, without model training components. I write this for my teammate 
 
 ## Learning Objectives
 - Learn how to use **OpenCV** and image processing libraries
